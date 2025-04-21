@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rueda de la Fortuna</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    #wheel-wrapper {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      margin-bottom: 20px;
+    }
+    /* Indicador rotado 180° */
+    #pointer {
+      position: absolute;
+      top: -2px;
+      z-index: 1;
+      left: calc(50% - 10px);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 20px solid #333;
+      transform: rotate(180deg);
+    }
+    #wheel-container {
+      width: 100%;
+      height: 100%;
+      transition: transform 5s ease-out;
+      transform-origin: center center;
+    }
+    #wheel {
+      border: 2px solid #333;
+      border-radius: 50%;
+      display: block;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="wheel-wrapper">
+    <div id="pointer"></div>
+    <div id="wheel-container">
+      <canvas id="wheel" width="500" height="500"></canvas>
+    </div>
+  </div>
+
+  <!-- Solo el botón de girar -->
+  <button id="spin">Girar rueda</button>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    const center = size / 2;
+    const numSegments = 12;
+    const anglePer = 2 * Math.PI / numSegments;
+    const wheelContainer = document.getElementById('wheel-container');
+    const spinBtn = document.getElementById('spin');
+
+    // Categorías sin Salud, Accesorio, Educación ni Hogar
+    const possibleCategories = [
+      'Herramienta', 'Juguete', 'Comida', 'Ropa', 'Bebida',
+      'Deporte', 'Electrónica', 'Mobiliario', 'Vehículo',
+      'Instrumento', 'Arte', 'Viaje', 'Jardinería', 'Mascota'
+    ];
+
+    // Baraja y toma 12
+    function shuffle(array) {
+      const a = array.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function generateCategories() {
+      return shuffle(possibleCategories).slice(0, numSegments);
+    }
+
+    function drawWheel(labels) {
+      ctx.clearRect(0, 0, size, size);
+      for (let i = 0; i < numSegments; i++) {
+        const start = anglePer * i;
+        const end = start + anglePer;
+        ctx.fillStyle = `hsl(${(i * 360 / numSegments)}, 70%, 70%)`;
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, center - 2, start, end);
+        ctx.closePath();
+        ctx.fill();
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(start + anglePer / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText(labels[i], center - 10, 5);
+        ctx.restore();
+      }
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(center, center, 40, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    let currentRotation = 0;
+    spinBtn.addEventListener('click', () => {
+      spinBtn.disabled = true;
+      const extra = Math.floor(Math.random() * 360);
+      const spinAngle = 360 * 4 + extra;
+      currentRotation += spinAngle;
+      wheelContainer.style.transform = `rotate(${currentRotation}deg)`;
+      setTimeout(() => { spinBtn.disabled = false; }, 5000);
+    });
+
+    // Inicializa con 12 categorías aleatorias
+    const categories = generateCategories();
+    drawWheel(categories);
+  </script>
+
+</body>
+</html>
